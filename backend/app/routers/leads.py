@@ -8,8 +8,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Lead, LeadStatusHistory
 from app.schemas.lead import LeadCreate, LeadCreated
+from app.security import require_api_key
 
-router = APIRouter(prefix="/leads", tags=["leads"])
+router = APIRouter(
+    prefix="/leads", tags=["leads"], dependencies=[Depends(require_api_key)]
+)
 
 
 def make_content_hash(email: str, message: str) -> str:
