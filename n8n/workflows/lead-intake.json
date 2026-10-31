@@ -1,19 +1,20 @@
 {
-  "name": "Lead Intake v2",
+  "name": "Lead Intake",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "lead-intake-v2",
+        "path": "lead-intake",
         "authentication": "headerAuth",
-        "responseMode": "responseNode",
+        "responseMode": "lastNode",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.2,
       "position": [0, 0],
-      "id": "b7c1d2e3-1111-4a2b-9c3d-000000000001",
+      "id": "ad1fbaed-da5d-40fb-8190-1a83c9549b8a",
       "name": "Webhook",
+      "webhookId": "d12b7279-47f7-4108-a2d1-8ea9d7027a7c",
       "credentials": {
         "httpHeaderAuth": {
           "id": "kvkpSNJZTvKKs6bq",
@@ -30,19 +31,12 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.body) }}",
-        "options": {
-          "response": {
-            "response": {
-              "fullResponse": true,
-              "neverError": true
-            }
-          }
-        }
+        "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [224, 0],
-      "id": "b7c1d2e3-2222-4a2b-9c3d-000000000002",
+      "id": "341e7f40-67f0-436b-a223-89c1e89f1035",
       "name": "HTTP Request",
       "credentials": {
         "httpHeaderAuth": {
@@ -50,34 +44,32 @@
           "name": "Header Auth account"
         }
       }
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ $json.body }}",
-        "options": {
-          "responseCode": "={{ $json.statusCode }}"
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [448, 0],
-      "id": "b7c1d2e3-3333-4a2b-9c3d-000000000003",
-      "name": "Respond to Webhook"
     }
   ],
+  "pinData": {},
   "connections": {
     "Webhook": {
-      "main": [[{ "node": "HTTP Request", "type": "main", "index": 0 }]]
-    },
-    "HTTP Request": {
-      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
-  "pinData": {},
+  "versionId": "68b92ceb-7031-4df1-ac41-958f88de533d",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "id": "nWBdJReYP8xSHa4A",
   "tags": []
 }
