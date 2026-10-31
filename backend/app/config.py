@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_db: str
     postgres_port: int = 5432
-    postgres_host: str = "localhost"
+    postgres_host: str = "127.0.0.1"
 
     # Secret that n8n must send in the x-api-key header.
     # min_length=32 refuses weak keys.
