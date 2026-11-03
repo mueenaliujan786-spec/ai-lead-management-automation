@@ -3,12 +3,13 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.routers import analysis, leads
+from app.routers import analysis, drafts, leads
 
 app = FastAPI(title="AI Lead Management API", version="0.1.0")
 
 app.include_router(leads.router)
 app.include_router(analysis.router)
+app.include_router(drafts.router)
 
 
 @app.get("/health")

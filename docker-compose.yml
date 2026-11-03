@@ -21,6 +21,11 @@ services:
     image: docker.n8n.io/n8nio/n8n
     container_name: leadflow_n8n
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:${N8N_PORT}:5678"
     environment:
@@ -31,6 +36,13 @@ services:
       N8N_SECURE_COOKIE: "false"
     volumes:
       - n8n_data:/home/node/.n8n
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: leadflow_mailpit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"
 
 volumes:
   postgres_data:
