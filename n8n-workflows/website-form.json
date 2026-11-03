@@ -1,0 +1,99 @@
+{
+  "name": "Website Form",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Contact us",
+        "formDescription": "Tell us about your project and we will get back to you.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company"
+            },
+            {
+              "fieldLabel": "Service interest"
+            },
+            {
+              "fieldLabel": "Message",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Contact Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1e0ffe1f-df38-4066-afc6-95c09eb41d89",
+      "webhookId": "a41a55a6-3cd6-4f8e-8770-e18b4e3f3ec8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/lead-intake",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ full_name: $json['Full name'], email: $json['Email'], company: $json['Company'], service_interest: $json['Service interest'], message: $json['Message'], source: 'website' }) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "name": "Send To Lead Intake",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "e3cd519e-572c-4617-9593-c9202514a5f2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "kvkpSNJZTvKKs6bq",
+          "name": "Webhook Secret"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Contact Form": {
+      "main": [
+        [
+          {
+            "node": "Send To Lead Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a461a58f-423f-4fad-a734-0a64db08781b",
+  "meta": {
+    "instanceId": "6573705ebc7183a44c153bf056094c9f0502c024652c99c3087a250164bb9a68"
+  },
+  "nodeGroups": [],
+  "id": "OZD6wQ0mZFgcEHhc",
+  "tags": []
+}
