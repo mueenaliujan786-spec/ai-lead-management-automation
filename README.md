@@ -1,124 +1,47 @@
-# AI-Powered Lead Management & Follow-Up Automation System
+## AI Lead Management Automation
 
-An automation system that captures customer leads from a website form, stores them in a database, analyzes them with AI, writes a personalized follow-up email, and only sends it after a human approves it.
+A small-business lead pipeline: a customer fills in a web form, an AI classifies the inquiry and drafts a reply, **a human approves it**, and only then is the email sent.
 
-**Status:** Core pipeline working end to end (form, intake, AI analysis, draft, approval, email). A React dashboard for approvals is planned; for now approvals go through the API.
+### How it works
 
-## What it does
+1. A customer submits the web form (n8n form).
+2. The lead is saved in PostgreSQL through a FastAPI backend.
+3. Gemini classifies the lead, sets a priority and drafts a polite reply.
+4. The draft waits as `pending` until a person approves or rejects it.
+5. Approved drafts are emailed automatically and the lead becomes `contacted`.
 
-1. A visitor fills in a public **contact form** (built with n8n).
-2. The **Lead Intake** workflow sends the lead to the backend, which validates it, detects duplicates and saves it in PostgreSQL.
-3. **Google Gemini** analyzes the lead (category, priority) and drafts a reply email. The AI output is validated before it is saved, and failures are handled without losing the lead.
-4. The draft waits with the status `pending`. A human **approves or rejects** it through the API.
-5. The **Send Approved Emails** workflow picks up approved drafts and sends them. The lead then moves to `contacted` and the draft to `sent`.
+### Safety and reliability
 
-Every status change is recorded in a history table.
+- Webhook protected by a secret header (strangers get 403 and nothing is saved).
+- Prompt-injection test: a message asking for a "90% discount" did not change the AI draft.
+- Duplicate leads and double approvals are refused (one email can never be sent twice).
+- Failed AI calls are retried and recorded instead of lost.
+- Secrets live in `.env` (not in Git); API keys were rotated after testing.
 
-## Screenshots
+### Tech stack
 
-### Public contact form
-![Contact form](docs/screenshots/form.png)
+n8n, FastAPI (Python), PostgreSQL, Docker Compose, Gemini API, Mailpit (local test inbox).
 
-### Lead Intake workflow (n8n)
-![Lead Intake workflow](docs/screenshots/workflow-lead-intake.png)
+### Run locally
 
-### Approved emails delivered (Mailpit test inbox)
-![Mailpit inbox](docs/screenshots/mailpit-inbox.png)
+1. Copy `.env.example` to `.env` and fill in the values.
+2. Run `docker compose up -d`.
+3. Open n8n at http://localhost:5678, API docs at http://localhost:8000/docs, test inbox at http://localhost:8025.
+4. The three n8n workflows are Lead Intake, Send Approved Emails and Website Form.
 
-### Leads and draft statuses in PostgreSQL
-![Database result](docs/screenshots/database-result.png)
+### Demo
 
-## Architecture
+| Step | Screenshot |
+|---|---|
+| 1. Customer fills in the form | ![Form](docs/screenshots/demo-1-form-filled.png) |
+| 2. Form submitted | ![Submitted](docs/screenshots/demo-2-form-submitted.png) |
+| 3. Lead waits for approval | ![Pending](docs/screenshots/demo-3-pending.png) |
+| 4. A person approves the draft | ![Approved](docs/screenshots/demo-4-approved.png) |
+| 5. The email arrives | ![Email](docs/screenshots/demo-5-gmail.png) |
+| 6. Status becomes contacted and sent | ![Sent](docs/screenshots/demo-6-sent.png) |
+| 7. Lead Intake workflow run | ![Run 1](docs/screenshots/demo-7-lead-intake-run.png) |
+| 8. Send Approved Emails workflow run | ![Run 2](docs/screenshots/demo-8-send-approved-run.png) |
 
-```
-Contact form (n8n)
-      |
-      v
-Website Form workflow --> Lead Intake workflow (n8n webhook)
-                                   |
-                                   v
-                          FastAPI backend --> PostgreSQL
-                                   |
-                                   v
-                         Gemini AI analysis + email draft
-                                   |
-                                   v
-                    Draft saved as "pending" (awaiting approval)
-                                   |
-                       Human approves via API
-                                   |
-                                   v
-              Send Approved Emails workflow (n8n) --> Email sent
-```
+### Limitations
 
-## Tech stack
-
-- **n8n**: workflow automation (form, intake, AI step, email sending)
-- **Python + FastAPI**: backend API with validation and API key protection
-- **PostgreSQL 16**: leads, AI analyses, email drafts and status history
-- **Alembic**: database migrations
-- **Google Gemini API** (free tier): lead analysis and email drafting
-- **Docker Compose**: PostgreSQL, n8n and Mailpit
-- **Mailpit**: local test inbox, so no real emails are sent during development
-- **pytest**: automated backend tests
-
-## Security and reliability
-
-- The webhook and the backend both require secret keys (`x-api-key`), compared in constant time.
-- Secrets live in a `.env` file that is excluded from Git; exported n8n workflows contain only credential names, never values.
-- Duplicate leads are rejected with a clear error.
-- Human approval is required before any email is sent, and a draft can only be reviewed once.
-- If the AI call fails, the lead is still saved and the failure is recorded.
-
-## API overview
-
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| POST | `/leads` | Create a lead (validation and duplicate detection) |
-| POST | `/leads/{id}/analysis` | Save the AI analysis and draft |
-| GET | `/drafts/approved` | List approved drafts waiting to be sent |
-| POST | `/drafts/{id}/review` | Approve or reject a draft |
-| POST | `/drafts/{id}/sent` | Mark a draft as sent |
-
-All endpoints under `/drafts` require the `x-api-key` header.
-
-## Getting started
-
-These steps assume Docker Desktop, Python 3.11 and Git are installed.
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/mueenaliujan786-spec/ai-lead-management-automation.git
-   cd ai-lead-management-automation
-   ```
-2. **Create your `.env` file** from `.env.example` and fill in your own values. `WEBHOOK_API_KEY` must be at least 32 characters.
-3. **Start PostgreSQL, n8n and Mailpit**
-   ```bash
-   docker compose up -d
-   ```
-4. **Set up and start the backend** (from the `backend` folder, with a virtual environment active)
-   ```bash
-   pip install -r requirements.txt
-   alembic upgrade head
-   uvicorn app.main:app --port 8000
-   ```
-5. **Import the workflows** from the `n8n-workflows` folder into n8n (`http://localhost:5678`), create the credentials they reference (a webhook secret, the backend API key and a Gemini API key), then publish them.
-6. **Open the form** from the Contact Form node's Production URL, submit a test lead, and check Mailpit at `http://localhost:8025` after approving the draft.
-
-## Documentation
-
-- [MVP scope](docs/mvp.md)
-- [Architecture](docs/architecture.md)
-- [Database design](docs/database.md)
-
-## Roadmap
-
-- [x] Phase 1: Requirements and planning
-- [x] Phase 2: Environment setup
-- [x] Phase 3: Backend development
-- [x] Phase 4: n8n workflows
-- [x] Phase 5: Email and approval system
-- [ ] Phase 6: Frontend dashboard (React + Tailwind)
-- [ ] Phase 7: Extended testing and security review
-- [ ] Phase 8: Deployment
-- [ ] Phase 9: Portfolio preparation
+Runs locally with a test inbox. Real Gmail delivery was tested once for the demo. The free Gemini tier can be slow or busy, so a retry workflow is a planned improvement.
