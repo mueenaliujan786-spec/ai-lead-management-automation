@@ -221,3 +221,4 @@ __marimo__/
 
 backend/n8n-*-backup.json
 *.bak
+*.bak*

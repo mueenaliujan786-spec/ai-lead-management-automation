@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # min_length=32 refuses weak keys.
     webhook_api_key: str = Field(min_length=32)
 
+    # Secret that signs dashboard login tokens. Never commit it.
+    jwt_secret: str = Field(min_length=32)
+    jwt_expire_minutes: int = 60
+
     # extra="ignore": the .env file also has n8n settings we don't need here.
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
